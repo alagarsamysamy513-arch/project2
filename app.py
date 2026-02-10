@@ -74,7 +74,17 @@ def login():
         # We receive the ID token to verify and set session
         id_token = request.json.get('idToken')
         try:
-            decoded_token = auth.verify_id_token(id_token)
+            try:
+                decoded_token = auth.verify_id_token(id_token)
+            except Exception as e:
+                # Handle clock skew (Token used too early)
+                if 'Token used too early' in str(e):
+                    import time
+                    time.sleep(2) # Wait 2 seconds for server time to catch up
+                    decoded_token = auth.verify_id_token(id_token)
+                else:
+                    raise e
+                    
             uid = decoded_token['uid']
             
             # Get user role from Firestore
