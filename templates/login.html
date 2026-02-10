@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow border-0 animate-fade-up">
+                <div class="card-body p-5">
+                    <h2 class="text-center fw-bold mb-4 text-success">Welcome Back</h2>
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" required>
+                        </div>
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">Login</button>
+                        </div>
+                    </form>
+                    <p class="text-center mt-3">New here? <a href="{{ url_for('register') }}"
+                            class="text-success fw-bold">Create Account</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module">
+    import { auth, signInWithEmailAndPassword } from "{{ url_for('static', filename='js/main.js') }}";
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            const idToken = await user.getIdToken();
+
+            // Send token to backend to set session
+            const response = await fetch("{{ url_for('login') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ idToken: idToken })
+            });
+
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                if (result.role === 'admin') {
+                    window.location.href = "{{ url_for('admin_dashboard') }}";
+                } else if (result.role === 'farmer') {
+                    window.location.href = "{{ url_for('farmer_dashboard') }}";
+                } else {
+                    window.location.href = "{{ url_for('customer_dashboard') }}";
+                }
+            } else {
+                alert('Login Failed: ' + result.message);
+            }
+
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    });
+</script>
+{% endblock %}

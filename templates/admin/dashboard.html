@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">Admin Dashboard <small class="text-muted fs-6">System Controller</small></h2>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Farmers</h5>
+                    <p class="display-4">{{ counts.farmers }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Consumers</h5>
+                    <p class="display-4">{{ consumers_count }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5 class="card-title">Total Products</h5>
+                    <p class="display-4">{{ counts.products }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Orders</h5>
+                    <p class="display-4">{{ counts.orders }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Approvals -->
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-white">
+            <h4 class="mb-0 text-secondary">Pending Farmer Approvals <span class="badge bg-danger rounded-pill">{{
+                    counts.pending }}</span></h4>
+        </div>
+        <div class="card-body">
+            {% if pending_farmers %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Farm Address</th>
+                            <th>Contact</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for farmer in pending_farmers %}
+                        <tr>
+                            <td>{{ farmer.name }}</td>
+                            <td>{{ farmer.email }}</td>
+                            <td>{{ farmer.address }}</td>
+                            <td>{{ farmer.contact }}</td>
+                            <td>
+                                <a href="{{ url_for('verify_farmer', uid=farmer.id, action='approve') }}"
+                                    class="btn btn-success btn-sm me-2">Approve</a>
+                                <a href="{{ url_for('verify_farmer', uid=farmer.id, action='reject') }}"
+                                    class="btn btn-outline-danger btn-sm">Reject</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-4">No pending approvals.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body text-center">
+                    <i class="bi bi-people fs-1 text-primary mb-3"></i>
+                    <h5>User Management</h5>
+                    <p class="text-muted">View all farmers and consumers.</p>
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-outline-primary stretched-link">Manage
+                        Users</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body text-center">
+                    <i class="bi bi-box-seam fs-1 text-warning mb-3"></i>
+                    <h5>Product Monitoring</h5>
+                    <p class="text-muted">Check product quality and prices.</p>
+                    <a href="{{ url_for('admin_products') }}" class="btn btn-outline-warning stretched-link">Monitor
+                        Products</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body text-center">
+                    <i class="bi bi-cart-check fs-1 text-danger mb-3"></i>
+                    <h5>Order Monitoring</h5>
+                    <p class="text-muted">Track payments and transactions.</p>
+                    <a href="{{ url_for('admin_orders') }}" class="btn btn-outline-danger stretched-link">Monitor
+                        Orders</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

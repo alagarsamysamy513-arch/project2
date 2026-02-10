@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Marketplace{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Hero / Search Section -->
+    <div class="bg-success text-white p-5 rounded-3 mb-5 animate-fade-up">
+        <h2 class="fw-bold">Fresh Marketplace</h2>
+        <p class="lead">Find the best quality produce directly from farmers.</p>
+        <div class="input-group mt-4 shadow-sm">
+            <input type="text" class="form-control form-control-lg"
+                placeholder="Search for products (e.g. Tomatoes, Rice)...">
+            <button class="btn btn-light text-success fw-bold" type="button">Search</button>
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    <h3 class="mb-4 text-success fw-bold">Available Products</h3>
+    <div class="row g-4">
+        {% for product in products %}
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm product-card animate-fade-up delay-1">
+                <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}"
+                    style="height: 200px; object-fit: cover;">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="small text-muted mb-1">{{ product.category }} • By {{ product.farmer_name }}</p>
+                    <div class="mt-auto d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fs-5 fw-bold text-success">₹{{ product.price }}/kg</span>
+                            <br><small class="text-muted">Avg. Market Price</small>
+                        </div>
+                        {% if session.get('role') == 'customer' %}
+                        <a href="{{ url_for('checkout', name=product.name) }}"
+                            class="btn btn-outline-primary btn-sm">Buy
+                            Now</a>
+                        {% else %}
+                        <a href="{{ url_for('product_details', name=product.name) }}"
+                            class="btn btn-outline-success btn-sm">View Details</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <p class="text-muted fs-4">No products available at the moment.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelector('input[type="text"]').addEventListener('input', function (e) {
+        const searchText = e.target.value.toLowerCase();
+        const cards = document.querySelectorAll('.product-card');
+
+        cards.forEach(card => {
+            const title = card.querySelector('.card-title').textContent.toLowerCase();
+            const category = card.querySelector('.text-muted').textContent.toLowerCase();
+
+            if (title.includes(searchText) || category.includes(searchText)) {
+                card.closest('.col-md-3').style.display = 'block';
+            } else {
+                card.closest('.col-md-3').style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

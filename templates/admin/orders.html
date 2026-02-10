@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Monitor Orders{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Order Monitoring</h2>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Product</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td><code>#{{ order.id[:8] }}</code></td>
+                            <td>{{ order.product_name }} (x{{ order.quantity }})</td>
+                            <td>{{ order.customer_name }}</td>
+                            <td class="fw-bold text-success">₹{{ order.total_price }}</td>
+                            <td>
+                                <span class="badge bg-success">{{ order.delivery_status | capitalize }}</span>
+                            </td>
+                            <td>{{ order.createdAt.strftime('%b %d, %H:%M') if order.createdAt else 'N/A' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

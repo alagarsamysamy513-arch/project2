@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">Order History</h2>
+
+    {% if orders %}
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Order ID</th>
+                            <th>Product</th>
+                            <th>Date</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Tracking</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td class="ps-4 text-muted small">#{{ order.id[:8] }}</td>
+                            <td class="fw-bold">{{ order.product_name }} <span
+                                    class="badge bg-light text-dark border">{{ order.quantity }} kg</span></td>
+                            <td>{{ order.createdAt.strftime('%Y-%m-%d') if order.createdAt else 'Just now' }}</td>
+                            <!-- Note: Firestore timestamps need handling in Python if rendering server side, 
+                                 but for now we might get raw objects. Client side rendering of date is safer if raw. 
+                                 Or in app.py sanitize dates. For MVP, we'll let it be. -->
+                            <td class="fw-bold text-success">₹{{ order.total_price }}</td>
+                            <td>
+                                {% if order.delivery_status == 'delivered' %}
+                                <span class="badge bg-success">Delivered</span>
+                                {% elif order.delivery_status == 'shipped' %}
+                                <span class="badge bg-primary">Shipped</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">Processing</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('track_order', oid=order.id) }}"
+                                    class="btn btn-sm btn-outline-secondary">Track</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-cart-x fs-1 text-muted mb-3"></i>
+        <p class="text-muted fs-5">You haven't placed any orders yet.</p>
+        <a href="{{ url_for('customer_dashboard') }}" class="btn btn-primary">Start Shopping</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
