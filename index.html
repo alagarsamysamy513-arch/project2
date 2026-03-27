@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-3 fw-bold mb-4 animate-fade-up">Connecting Farmers Directly with Consumers</h1>
+        <p class="lead mb-5 animate-fade-up delay-1">Fresh from the farm to your doorstep. No middlemen, better prices.
+        </p>
+        <div class="animate-fade-up delay-2">
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3">Farmer Register</a>
+            <a href="{{ url_for('login') }}" class="btn btn-light btn-lg text-success fw-bold">Shop Now</a>
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="fw-bold">Why Harvest Hub?</h2>
+                <p class="text-muted">We empower farmers and provide consumers with quality produce.</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 p-4 text-center">
+                    <div class="card-body">
+                        <i class="bi bi-shield-check text-success fs-1 mb-3"></i>
+                        <h4 class="card-title">Secure & Trusted</h4>
+                        <p class="card-text">Every farmer is verified. Secure payments and transparent transactions.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 p-4 text-center">
+                    <div class="card-body">
+                        <i class="bi bi-cash-coin text-success fs-1 mb-3"></i>
+                        <h4 class="card-title">Fair Pricing</h4>
+                        <p class="card-text">Direct selling means better profits for farmers and lower costs for you.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 p-4 text-center">
+                    <div class="card-body">
+                        <i class="bi bi-basket text-success fs-1 mb-3"></i>
+                        <h4 class="card-title">Fresh Produce</h4>
+                        <p class="card-text">Get fresh, high-quality agricultural products directly from the source.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

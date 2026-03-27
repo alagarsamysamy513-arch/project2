@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Reports{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Customer Reports</h2>
+        <a href="{{ url_for('farmer_dashboard') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="card shadow-sm border-danger">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-danger">
+                        <tr>
+                            <th>Report ID</th>
+                            <th>Customer</th>
+                            <th>Order ID</th>
+                            <th>Product</th>
+                            <th>Issue Reason</th>
+                            <th>Description</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if reports %}
+                            {% for report in reports %}
+                            <tr id="row-{{ report.id }}">
+                                <td><code>#{{ report.id[:8] }}</code></td>
+                                <td>{{ report.customer_name }}</td>
+                                <td>{{ report.order_id[:8] }}</td>
+                                <td>{{ report.product_name }}</td>
+                                <td><span class="badge bg-warning text-dark">{{ report.reason }}</span></td>
+                                <td style="max-width: 250px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="{{ report.description }}">{{ report.description }}</td>
+                                <td>{{ report.createdAt.strftime('%b %d, %H:%M') if report.createdAt else 'N/A' }}</td>
+                                <td>
+                                    {% if report.status == 'Resolved' %}
+                                        <span class="badge bg-success">Resolved</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Pending Admin Action</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    <i class="bi bi-shield-check fs-1 d-block mb-3"></i>
+                                    No customer reports found for your products. Great job!
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

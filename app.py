@@ -9,7 +9,7 @@ import json
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', os.urandom(24))
+app.secret_key = os.getenv('SECRET_KEY', 'dev_secret_key_12345')
 
 # Initialize Firebase Admin SDK
 # Try loading from ENV string (for hosting) or from local file
@@ -115,73 +115,6 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
-@app.route('/setup-admin')
-@login_required
-def setup_admin():
-    uid = session['user_id']
-    db.collection('users').document(uid).update({'role': 'admin'})
-    session['role'] = 'admin'
-    return redirect(url_for('admin_dashboard'))
-
-@app.route('/seed-data')
-def seed_data():
-    uid = session.get('user_id', 'system_gen')
-    role = session.get('role', 'admin')
-    
-    # If a farmer seeds, they own the products
-    farmer_id = uid if role == 'farmer' else 'system_gen'
-    
-    products = [
-        {
-            "name": "Organic Red Tomatoes",
-            "category": "Vegetables",
-            "price": 45.0,
-            "quantity": 150,
-            "image_url": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-            "farmer_name": "Kumar Farms",
-            "farmer_id": farmer_id,
-            "status": "available",
-            "createdAt": firestore.SERVER_TIMESTAMP
-        },
-        {
-            "name": "Fresh Alphonso Mangoes",
-            "category": "Fruits",
-            "price": 120.0,
-            "quantity": 60,
-            "image_url": "https://images.unsplash.com/photo-1553279768-865429fa0078?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-            "farmer_name": "Salem Orchard",
-            "farmer_id": farmer_id,
-            "status": "available",
-            "createdAt": firestore.SERVER_TIMESTAMP
-        },
-        {
-            "name": "Basmati Rice (Premium)",
-            "category": "Grains",
-            "price": 85.0,
-            "quantity": 500,
-            "image_url": "https://images.unsplash.com/photo-1586201375761-83865001e31c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-            "farmer_name": "Punjab Grains",
-            "farmer_id": farmer_id,
-            "status": "available",
-            "createdAt": firestore.SERVER_TIMESTAMP
-        },
-        {
-            "name": "Farm Fresh Milk",
-            "category": "Dairy",
-            "price": 50.0,
-            "quantity": 100,
-            "image_url": "https://images.unsplash.com/photo-1550583724-125581f77033?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-            "farmer_name": "Green Dairy",
-            "farmer_id": farmer_id,
-            "status": "available",
-            "createdAt": firestore.SERVER_TIMESTAMP
-        }
-    ]
-    
-    for p in products:
-        db.collection('products').add(p)
-        
-    return "Marketplace seeded! Go back to <a href='/customer/dashboard'>Dashboard</a>."
 
 # Admin Routes
 @app.route('/admin/dashboard')
@@ -251,6 +184,22 @@ def farmer_orders():
     orders.sort(key=lambda x: x.get('createdAt').timestamp() if x.get('createdAt') and hasattr(x.get('createdAt'), 'timestamp') else 0, reverse=True)
     return render_template('farmer/orders.html', orders=orders)
 
+@app.route('/farmer/reports')
+@login_required
+@farmer_required
+def farmer_reports():
+    uid = session['user_id']
+    orders_ref = db.collection('orders').where('farmer_id', '==', uid).stream()
+    order_ids = [doc.id for doc in orders_ref]
+    
+    if not order_ids:
+        reports = []
+    else:
+        reports_ref = db.collection('reports').order_by('createdAt', direction=firestore.Query.DESCENDING).stream()
+        reports = [{'id': doc.id, **doc.to_dict()} for doc in reports_ref if doc.to_dict().get('order_id') in order_ids]
+        
+    return render_template('farmer/reports.html', reports=reports)
+
 @app.route('/api/update-order-status', methods=['POST'])
 @login_required
 @farmer_required
@@ -267,24 +216,10 @@ def update_order_status():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-@app.route('/farmer/add-product', methods=['GET', 'POST'])
+@app.route('/farmer/add-product')
 @login_required
 @farmer_required
 def add_product():
-    if request.method == 'POST':
-        # Handling product addition via backend form or JS fetch
-        # If using standard form submission (easier for files if handled by server, but we use Firebase Storage mainly)
-        # We'll use client-side JS to upload image and then send data to backend or just save directly from JS
-        # BUT user wanted "Python Backend". So we should receive data here.
-        # However, file upload handling is easier on client with Firebase Storage or server with Flask.
-        # Let's use Flask for form data and save to Firestore. 
-        # For Image, we'll accept a URL (uploaded via client JS to Firebase Storage first) OR simplest:
-        # Just use client-side logic in the template to write to Firestore directly for consistency with Auth?
-        # No, "Farmer Add Product Page" usually implies a backend route.
-        # Let's support both. I'll implement the route to render the page, and the page will use JS to save to DB 
-        # because saving file to Firebase Storage from Flask requires sending file to server first.
-        # Client-side upload is better for performance.
-        pass
     return render_template('farmer/add_product.html')
 
 @app.route('/farmer/products')
@@ -432,6 +367,16 @@ def add_review(oid):
         return render_template('customer/add_review.html', order=order)
     return redirect(url_for('my_orders'))
 
+@app.route('/customer/report/<oid>', methods=['GET'])
+@login_required
+@customer_required
+def report_issue(oid):
+    order_ref = db.collection('orders').document(oid).get()
+    if order_ref.exists:
+        order = {'id': order_ref.id, **order_ref.to_dict()}
+        return render_template('customer/report_issue.html', order=order)
+    return redirect(url_for('my_orders'))
+
 # Admin Review Monitoring
 @app.route('/admin/reviews')
 @login_required
@@ -466,6 +411,24 @@ def admin_orders():
     # Sort using timestamp to avoid TypeError
     orders.sort(key=lambda x: x.get('createdAt').timestamp() if x.get('createdAt') and hasattr(x.get('createdAt'), 'timestamp') else 0, reverse=True)
     return render_template('admin/orders.html', orders=orders)
+
+@app.route('/admin/reports')
+@login_required
+@admin_required
+def admin_reports():
+    reports_ref = db.collection('reports').order_by('createdAt', direction=firestore.Query.DESCENDING).stream()
+    reports = [{'id': doc.id, **doc.to_dict()} for doc in reports_ref]
+    return render_template('admin/reports.html', reports=reports)
+
+@app.route('/api/admin/resolve-report/<rid>', methods=['POST'])
+@login_required
+@admin_required
+def admin_resolve_report(rid):
+    try:
+        db.collection('reports').document(rid).update({'status': 'Resolved'})
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/api/admin/update-price', methods=['POST'])
 @login_required
@@ -595,6 +558,36 @@ def api_add_review():
             'comment': data.get('comment'),
             'createdAt': firestore.SERVER_TIMESTAMP
         })
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@app.route('/api/submit-report', methods=['POST'])
+@login_required
+@customer_required
+def api_submit_report():
+    try:
+        data = request.json
+        uid = session['user_id']
+        oid = data.get('order_id')
+        
+        # Save report
+        db.collection('reports').add({
+            'customer_id': uid,
+            'customer_name': data.get('customer_name'),
+            'order_id': oid,
+            'product_name': data.get('product_name'),
+            'reason': data.get('reason'),
+            'description': data.get('description'),
+            'status': 'Pending',
+            'createdAt': firestore.SERVER_TIMESTAMP
+        })
+        
+        # Update order to indicate it was reported (if not already handled)
+        db.collection('orders').document(oid).update({
+            'is_reported': True
+        })
+        
         return jsonify({'status': 'success'})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
