@@ -42,8 +42,17 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <a href="{{ url_for('track_order', oid=order.id) }}"
-                                    class="btn btn-sm btn-outline-secondary">Track</a>
+                                <div class="d-flex flex-column gap-1 align-items-center" style="max-width: 120px;">
+                                    <a href="{{ url_for('track_order', oid=order.id) }}"
+                                        class="btn btn-sm btn-outline-secondary w-100">Track</a>
+                                    
+                                    {% if not order.is_reported %}
+                                    <a href="{{ url_for('report_issue', oid=order.id) }}"
+                                        class="btn btn-sm btn-outline-danger w-100">Report Issue</a>
+                                    {% elif order.is_reported %}
+                                    <span class="badge bg-danger w-100 py-2">Reported</span>
+                                    {% endif %}
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
