@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Monitor Reports{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Customer Issue Reports</h2>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="card shadow-sm border-danger">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-danger">
+                        <tr>
+                            <th>Report ID</th>
+                            <th>Customer</th>
+                            <th>Order ID</th>
+                            <th>Product</th>
+                            <th>Issue Reason</th>
+                            <th>Description</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if reports %}
+                            {% for report in reports %}
+                            <tr id="row-{{ report.id }}">
+                                <td><code>#{{ report.id[:8] }}</code></td>
+                                <td>{{ report.customer_name }}</td>
+                                <td>{{ report.order_id[:8] }}</td>
+                                <td>{{ report.product_name }}</td>
+                                <td><span class="badge bg-warning text-dark">{{ report.reason }}</span></td>
+                                <td style="max-width: 250px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="{{ report.description }}">{{ report.description }}</td>
+                                <td>{{ report.createdAt.strftime('%b %d, %H:%M') if report.createdAt else 'N/A' }}</td>
+                                <td id="status-{{ report.id }}">
+                                    {% if report.status == 'Resolved' %}
+                                        <span class="badge bg-success">Resolved</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if report.status != 'Resolved' %}
+                                    <button class="btn btn-sm btn-outline-success resolve-btn" data-id="{{ report.id }}">
+                                        Resolve
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="9" class="text-center py-4 text-muted">No reports found.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const resolveButtons = document.querySelectorAll('.resolve-btn');
+        resolveButtons.forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const rid = btn.getAttribute('data-id');
+                if(!confirm("Mark this report as resolved?")) return;
+                
+                btn.disabled = true;
+                btn.innerText = 'Updating...';
+
+                try {
+                    const response = await fetch(`/api/admin/resolve-report/${rid}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    const result = await response.json();
+                    if (result.status === 'success') {
+                        // Update UI
+                        const statusCell = document.getElementById(`status-${rid}`);
+                        statusCell.innerHTML = '<span class="badge bg-success">Resolved</span>';
+                        btn.remove();
+                    } else {
+                        throw new Error(result.message);
+                    }
+                } catch (error) {
+                    console.error("Resolve Error: ", error);
+                    alert(error.message);
+                    btn.disabled = false;
+                    btn.innerText = 'Resolve';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

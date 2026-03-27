@@ -20,7 +20,7 @@
             <div class="card bg-info text-white">
                 <div class="card-body">
                     <h5 class="card-title">Total Consumers</h5>
-                    <p class="display-4">{{ consumers_count }}</p>
+                    <p class="display-4">{{ counts.consumers }}</p>
                 </div>
             </div>
         </div>
@@ -86,37 +86,44 @@
     </div>
 
     <!-- Quick Links -->
-    <div class="row g-4">
-        <div class="col-md-4">
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
             <div class="card h-100 shadow-sm border-0">
                 <div class="card-body text-center">
                     <i class="bi bi-people fs-1 text-primary mb-3"></i>
                     <h5>User Management</h5>
                     <p class="text-muted">View all farmers and consumers.</p>
-                    <a href="{{ url_for('admin_users') }}" class="btn btn-outline-primary stretched-link">Manage
-                        Users</a>
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-outline-primary">Manage Users</a>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card h-100 shadow-sm border-0">
                 <div class="card-body text-center">
                     <i class="bi bi-box-seam fs-1 text-warning mb-3"></i>
                     <h5>Product Monitoring</h5>
                     <p class="text-muted">Check product quality and prices.</p>
-                    <a href="{{ url_for('admin_products') }}" class="btn btn-outline-warning stretched-link">Monitor
-                        Products</a>
+                    <a href="{{ url_for('admin_products') }}" class="btn btn-outline-warning">Monitor Products</a>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card h-100 shadow-sm border-0">
                 <div class="card-body text-center">
                     <i class="bi bi-cart-check fs-1 text-danger mb-3"></i>
                     <h5>Order Monitoring</h5>
                     <p class="text-muted">Track payments and transactions.</p>
-                    <a href="{{ url_for('admin_orders') }}" class="btn btn-outline-danger stretched-link">Monitor
-                        Orders</a>
+                    <a href="{{ url_for('admin_orders') }}" class="btn btn-outline-danger">Monitor Orders</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-triangle fs-1 text-secondary mb-3"></i>
+                    <h5>Monitor Reports</h5>
+                    <p class="text-muted">View customer product reports.</p>
+                    <a href="{{ url_for('admin_reports') }}" class="btn btn-outline-secondary">View Reports</a>
                 </div>
             </div>
         </div>
